@@ -78,8 +78,19 @@ async def update_stats():
         await channel_assets.edit(name=f"Assets: {assets}")
         await channel_equity.edit(name=f"Equity: {equity}")
 
-        await channel_reserve.edit(name=f"Reserve: {zeph_reserve:,.2f} ZEPH ({total_percentage_of_zeph_in_reserve}%)")
-        await channel_floating.edit(name=f"Floating: {zeph_circ - zeph_reserve:,.2f} ZEPH ({100 - float(total_percentage_of_zeph_in_reserve):,.2f}%)")
+        floating = float(zeph_circ) - float(zeph_reserve)
+        if zeph_reserve < 1e6:
+            zeph_reserve = f"{zeph_reserve/1e3:.2f}K"
+        elif zeph_reserve < 1e9:
+            zeph_reserve = f"{zeph_reserve/1e6:.2f}M"
+
+        if floating < 1e6:
+            floating = f"{floating/1e3:.2f}K"
+        elif floating < 1e9:
+            floating = f"{floating/1e6:.2f}M"
+
+        await channel_reserve.edit(name=f"Res: {zeph_reserve} Ƶ ({total_percentage_of_zeph_in_reserve}%)")
+        await channel_floating.edit(name=f"Float: {floating} Ƶ ({100 - float(total_percentage_of_zeph_in_reserve):,.2f}%)")
         
 
     print("Stats updated!")

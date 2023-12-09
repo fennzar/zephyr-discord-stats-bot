@@ -152,9 +152,20 @@ if __name__ == '__main__':
 
     total_percentage_of_zeph_in_reserve = f"{float(zeph_reserve) / zeph_circ * 100:,.2f}"
     print(f"Total % of ZEPH in Reserve: {total_percentage_of_zeph_in_reserve}%")
+    floating = float(zeph_circ) - float(zeph_reserve)
     
-    print(f"Reserve: {zeph_reserve:,.2f} ZEPH ({total_percentage_of_zeph_in_reserve}%)")
-    print(f"Floating: {zeph_circ - zeph_reserve:,.2f} ZEPH ({100 - float(total_percentage_of_zeph_in_reserve):,.2f}%)")
+    if zeph_reserve < 1e6:
+        zeph_reserve = f"{zeph_reserve/1e3:.2f}K"
+    elif zeph_reserve < 1e9:
+        zeph_reserve = f"{zeph_reserve/1e6:.2f}M"
+
+    if floating < 1e6:
+        floating = f"{floating/1e3:.2f}K"
+    elif floating < 1e9:
+        floating = f"{floating/1e6:.2f}M"
+
+    print(f"Res: {zeph_reserve} Ƶ ({total_percentage_of_zeph_in_reserve}%)")
+    print(f"Float: {floating} Ƶ ({100 - float(total_percentage_of_zeph_in_reserve):,.2f}%)")
 
     
 
