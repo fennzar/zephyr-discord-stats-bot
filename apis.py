@@ -67,6 +67,7 @@ def getLastRewards():
 def getReserveInfo(format=False):
     try:
         info = get_reserve_info()
+        # print(info)
         reserve_ratio = float(info['result']['reserve_ratio'])
         reserve_ratio_ma = float(info['result']['reserve_ratio_ma'])
 
@@ -85,6 +86,8 @@ def getReserveInfo(format=False):
 
         assets = float(info['result']['assets']) / 1e12
         equity = float(info['result']['equity']) / 1e12
+
+        zeph_reserve = float(info['result']['zeph_reserve']) / 1e12
 
         if format:
             reserve_ratio = f"{round(reserve_ratio * 100,2)}%"
@@ -111,10 +114,12 @@ def getReserveInfo(format=False):
             else:
                 equity = f"${equity:,.2f}"
 
-        return reserve_ratio, reserve_ratio_ma, zrs_price, zrs_price_ma, assets, equity
+            # zeph_reserve = f"{zeph_reserve:,.2f}"
+
+        return reserve_ratio, reserve_ratio_ma, zrs_price, zrs_price_ma, assets, equity, zeph_reserve
     except:
         print("Error getting reserve info, daemon may not be running")
-        return None, None, None, None, None, None
+        return None, None, None, None, None, None, None
 
 
 if __name__ == '__main__':
@@ -123,6 +128,7 @@ if __name__ == '__main__':
     print(f"Price: {price}")
 
     circulating = getCirculatingSupply('ZEPH', format=True)
+    zeph_circ = getCirculatingSupply('ZEPH')
     print(f"Circulating: {circulating}")
 
     marketCap = getMarketCap()
@@ -135,13 +141,22 @@ if __name__ == '__main__':
     print(f"Miner Reward: {miner_reward}")
     print(f"Reserve Reward: {reserve_reward}")
 
-    reserve_ratio, reserve_ratio_ma, zrs_price, zrs_price_ma, assets, equity = getReserveInfo(True)
+    reserve_ratio, reserve_ratio_ma, zrs_price, zrs_price_ma, assets, equity, zeph_reserve = getReserveInfo(True)
     print(f"Reserve Ratio: {reserve_ratio}")
     print(f"Reserve Ratio MA: {reserve_ratio_ma}")
     print(f"ZRS Price: {zrs_price}")
     print(f"ZRS Price MA: {zrs_price_ma}")
     print(f"Assets: {assets}")
     print(f"Equity: {equity}")
+    print(f"ZEPH Reserve: {zeph_reserve}")
+
+    total_percentage_of_zeph_in_reserve = f"{float(zeph_reserve) / zeph_circ * 100:,.2f}"
+    print(f"Total % of ZEPH in Reserve: {total_percentage_of_zeph_in_reserve}%")
+    
+    print(f"Reserve: {zeph_reserve:,.2f} ZEPH ({total_percentage_of_zeph_in_reserve}%)")
+    print(f"Floating: {zeph_circ - zeph_reserve:,.2f} ZEPH ({100 - float(total_percentage_of_zeph_in_reserve):,.2f}%)")
+
+    
 
 
 
