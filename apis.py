@@ -3,66 +3,86 @@ from daemon import get_reserve_info
 
 
 def getCurrentPrice(format=False):
-    url = "https://api.mexc.com/api/v3/ticker/price?symbol=ZEPHUSDT"
-    response = requests.get(url)
-    data = response.json()
-    if format:
-        return f"${float(data['price']):,.2f}"
-    return float(data['price'])
+    try:
+        url = "https://api.mexc.com/api/v3/ticker/price?symbol=ZEPHUSDT"
+        response = requests.get(url)
+        data = response.json()
+        if format:
+            return f"${float(data['price']):,.2f}"
+        return float(data['price'])
+    except Exception as e:
+        print("Error in getCurrentPrice:", e)
+        return "..."
 
 def getCirculatingSupply(ticker, format=False):
-    if ticker == 'ZEPH':
-        url = 'https://explorer.zephyrprotocol.com/api/circulating'
-    elif ticker == 'ZSD':
-        url = 'https://explorer.zephyrprotocol.com/api/circulating/zsd'
-    elif ticker == 'ZRS':
-        url = 'https://explorer.zephyrprotocol.com/api/circulating/zrs'
+    try:
+        if ticker == 'ZEPH':
+            url = 'https://explorer.zephyrprotocol.com/api/circulating'
+        elif ticker == 'ZSD':
+            url = 'https://explorer.zephyrprotocol.com/api/circulating/zsd'
+        elif ticker == 'ZRS':
+            url = 'https://explorer.zephyrprotocol.com/api/circulating/zrs'
 
-    if format:
-        return f"{round(requests.get(url).json(),2):,.2f}"
-    
-    return round(requests.get(url).json(),2)
+        if format:
+            return f"{round(requests.get(url).json(),2):,.2f}"
+        
+        return round(requests.get(url).json(),2)
+    except Exception as e:
+            print("Error in getCurrentPrice:", e)
+            return "..."
 
 def getMarketCap():
-    price = getCurrentPrice()
-    circulating = getCirculatingSupply('ZEPH')
-    marketCap = price * circulating
-    return f"${marketCap:,.2f}"
+    try:
+        price = getCurrentPrice()
+        circulating = getCirculatingSupply('ZEPH')
+        marketCap = price * circulating
+        return f"${marketCap:,.2f}"
+    except Exception as e:
+        print("Error in getCurrentPrice:", e)
+        return "..."
 
 def getHashrate():
-    url = 'https://explorer.zephyrprotocol.com/api/networkinfo'
-    response = requests.get(url)
-    data = response.json()
-    hash_rate = data['data']['hash_rate']
+    try:
+        url = 'https://explorer.zephyrprotocol.com/api/networkinfo'
+        response = requests.get(url)
+        data = response.json()
+        hash_rate = data['data']['hash_rate']
 
-    if hash_rate < 1e9:
-        return f"{hash_rate / 1e6:.2f} MH/s"
-    # Convert to GH/s otherwise
-    else:
-        return f"{hash_rate / 1e9:.2f} GH/s"
+        if hash_rate < 1e9:
+            return f"{hash_rate / 1e6:.2f} MH/s"
+        # Convert to GH/s otherwise
+        else:
+            return f"{hash_rate / 1e9:.2f} GH/s"
+    except Exception as e:
+        print("Error in getCurrentPrice:", e)
+        return "..."
 
 def getLastRewards():
-    url = 'https://explorer.zephyrprotocol.com/api/networkinfo'
-    response = requests.get(url)
-    data = response.json()
-    height = data['data']['height']
+    try:
+        url = 'https://explorer.zephyrprotocol.com/api/networkinfo'
+        response = requests.get(url)
+        data = response.json()
+        height = data['data']['height']
 
-    url = f'https://explorer.zephyrprotocol.com/api/block/{height-1}'
-    response = requests.get(url)
-    data = response.json()
+        url = f'https://explorer.zephyrprotocol.com/api/block/{height-1}'
+        response = requests.get(url)
+        data = response.json()
 
-    txs = data['data']['txs']
-    reward = 0
-    for tx in txs:
-        if tx['coinbase'] == True:
-            reward = float(tx['xmr_outputs']) / 1e12
-            break
+        txs = data['data']['txs']
+        reward = 0
+        for tx in txs:
+            if tx['coinbase'] == True:
+                reward = float(tx['xmr_outputs']) / 1e12
+                break
 
-    total_reward = reward / .8
-    miner_reward = f"Ƶ{round(total_reward * .75,2)}" 
-    reserve_reward = f"Ƶ{round(total_reward * .2,2)}"
+        total_reward = reward / .8
+        miner_reward = f"Ƶ{round(total_reward * .75,2)}" 
+        reserve_reward = f"Ƶ{round(total_reward * .2,2)}"
 
-    return miner_reward, reserve_reward
+        return miner_reward, reserve_reward
+    except Exception as e:
+            print("Error in getCurrentPrice:", e)
+            return "..."
 
 def getReserveInfo(format=False):
     try:
@@ -120,7 +140,7 @@ def getReserveInfo(format=False):
     except:
         print("Error getting reserve info, daemon may not be running")
         return None, None, None, None, None, None, None
-
+    
 
 if __name__ == '__main__':
 
