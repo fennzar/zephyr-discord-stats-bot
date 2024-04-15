@@ -5,13 +5,13 @@ from daemon import get_reserve_info
 def getCurrentPrice(format=False):
     try:
         url = "https://api.mexc.com/api/v3/ticker/price?symbol=ZEPHUSDT"
-        response = requests.get(url)
+        response = requests.get(url, timeout=5)
         data = response.json()
         if format:
             return f"${float(data['price']):,.2f}"
         return float(data['price'])
     except Exception as e:
-        print("Error in getCurrentPrice:", e)
+        print("\tError in getCurrentPrice:", e)
         return "..."
 
 def getCirculatingSupply(ticker, format=False):
@@ -24,11 +24,11 @@ def getCirculatingSupply(ticker, format=False):
             url = 'https://explorer.zephyrprotocol.com/api/circulating/zrs'
 
         if format:
-            return f"{round(requests.get(url).json(),2):,.2f}"
+            return f"{round(requests.get(url, timeout=5).json(),2):,.2f}"
         
-        return round(requests.get(url).json(),2)
+        return round(requests.get(url, timeout=5).json(),2)
     except Exception as e:
-            print("Error in getCurrentPrice:", e)
+            print("\tError in getCirculatingSupply:", e)
             return "..."
 
 def getMarketCap():
@@ -38,13 +38,13 @@ def getMarketCap():
         marketCap = price * circulating
         return f"${marketCap:,.2f}"
     except Exception as e:
-        print("Error in getCurrentPrice:", e)
+        print("\tError in getMarketCap:", e)
         return "..."
 
 def getHashrate():
     try:
         url = 'https://explorer.zephyrprotocol.com/api/networkinfo'
-        response = requests.get(url)
+        response = requests.get(url, timeout=5)
         data = response.json()
         hash_rate = data['data']['hash_rate']
 
@@ -54,18 +54,18 @@ def getHashrate():
         else:
             return f"{hash_rate / 1e9:.2f} GH/s"
     except Exception as e:
-        print("Error in getCurrentPrice:", e)
+        print("\tError in getHashrate:", e)
         return "..."
 
 def getLastRewards():
     try:
         url = 'https://explorer.zephyrprotocol.com/api/networkinfo'
-        response = requests.get(url)
+        response = requests.get(url, timeout=5)
         data = response.json()
         height = data['data']['height']
 
         url = f'https://explorer.zephyrprotocol.com/api/block/{height-1}'
-        response = requests.get(url)
+        response = requests.get(url, timeout=5)
         data = response.json()
 
         txs = data['data']['txs']
@@ -81,8 +81,8 @@ def getLastRewards():
 
         return miner_reward, reserve_reward
     except Exception as e:
-            print("Error in getCurrentPrice:", e)
-            return "..."
+            print("\tError in getLastRewards:", e)
+            return "...", "..."
 
 def getReserveInfo(format=False):
     try:
@@ -138,7 +138,7 @@ def getReserveInfo(format=False):
 
         return reserve_ratio, reserve_ratio_ma, zrs_price, zrs_price_ma, assets, equity, zeph_reserve
     except:
-        print("Error getting reserve info, daemon may not be running")
+        print("\tError getting reserve info, daemon may not be running")
         return None, None, None, None, None, None, None
     
 
@@ -148,7 +148,7 @@ if __name__ == '__main__':
     print(f"Price: {price}")
 
     circulating = getCirculatingSupply('ZEPH', format=True)
-    zeph_circ = getCirculatingSupply('ZEPH')
+
     print(f"Circulating: {circulating}")
 
     marketCap = getMarketCap()
@@ -170,22 +170,26 @@ if __name__ == '__main__':
     print(f"Equity: {equity}")
     print(f"ZEPH Reserve: {zeph_reserve}")
 
-    total_percentage_of_zeph_in_reserve = f"{float(zeph_reserve) / zeph_circ * 100:,.2f}"
-    print(f"Total % of ZEPH in Reserve: {total_percentage_of_zeph_in_reserve}%")
-    floating = float(zeph_circ) - float(zeph_reserve)
-    
-    if zeph_reserve < 1e6:
-        zeph_reserve = f"{zeph_reserve/1e3:.2f}K"
-    elif zeph_reserve < 1e9:
-        zeph_reserve = f"{zeph_reserve/1e6:.2f}M"
+    try:
+        zeph_circ = getCirculatingSupply('ZEPH')
+        total_percentage_of_zeph_in_reserve = f"{float(zeph_reserve) / zeph_circ * 100:,.2f}"
+        print(f"Total % of ZEPH in Reserve: {total_percentage_of_zeph_in_reserve}%")
+        floating = float(zeph_circ) - float(zeph_reserve)
+        
+        if zeph_reserve < 1e6:
+            zeph_reserve = f"{zeph_reserve/1e3:.2f}K"
+        elif zeph_reserve < 1e9:
+            zeph_reserve = f"{zeph_reserve/1e6:.2f}M"
 
-    if floating < 1e6:
-        floating = f"{floating/1e3:.2f}K"
-    elif floating < 1e9:
-        floating = f"{floating/1e6:.2f}M"
+        if floating < 1e6:
+            floating = f"{floating/1e3:.2f}K"
+        elif floating < 1e9:
+            floating = f"{floating/1e6:.2f}M"
 
-    print(f"Res: {zeph_reserve} Ƶ ({total_percentage_of_zeph_in_reserve}%)")
-    print(f"Float: {floating} Ƶ ({100 - float(total_percentage_of_zeph_in_reserve):,.2f}%)")
+        print(f"Res: {zeph_reserve} Ƶ ({total_percentage_of_zeph_in_reserve}%)")
+        print(f"Float: {floating} Ƶ ({100 - float(total_percentage_of_zeph_in_reserve):,.2f}%)")
+    except:
+        print("\tError calculating Res and floating supply")
 
     
 
