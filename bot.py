@@ -36,6 +36,8 @@ CHANNEL_IDS = {
     "equity": 1176604819973230673,
     "reserve": 1182915934197927936,
     "floating" : 1182916004670611567,
+    "zys-price": 1295197893543723072,
+    "yield-reserve": 1295197948514144290
 }
 
 # Task to update channel names
@@ -52,9 +54,11 @@ async def update_stats():
         channel_zrs_price, channel_zrs_price_ma = bot.get_channel(CHANNEL_IDS["zrs-price"]), bot.get_channel(CHANNEL_IDS["zrs-price-ma"])
         channel_assets, channel_equity = bot.get_channel(CHANNEL_IDS["assets"]), bot.get_channel(CHANNEL_IDS["equity"])
         channel_reserve, channel_floating = bot.get_channel(CHANNEL_IDS["reserve"]), bot.get_channel(CHANNEL_IDS["floating"])
+        channel_zys_price, channel_yield_reserve = bot.get_channel(CHANNEL_IDS["zys-price"]), bot.get_channel(CHANNEL_IDS["yield-reserve"])
 
         print("Updating stats...")
         zeph_circ = getCirculatingSupply('ZEPH')
+        zsd_circ = getCirculatingSupply('ZSD')
         await channel_price.edit(name=f"Price: {getCurrentPrice(format=True)}")
         await channel_zeph_circulating.edit(name=f"ZEPH Circ: {getCirculatingSupply('ZEPH', format=True)}")
         await channel_zsd_circulating.edit(name=f"ZSD Circ: {getCirculatingSupply('ZSD', format=True)}")
@@ -65,11 +69,12 @@ async def update_stats():
         await channel_miner_reward.edit(name=f"Miner Reward: {miner_reward}")
         await channel_reserve_reward.edit(name=f"Res Reward: {reserve_reward}")
 
-        reserve_ratio, reserve_ratio_ma, zrs_price, zrs_price_ma, assets, equity, zeph_reserve = getReserveInfo(True)
+        reserve_ratio, reserve_ratio_ma, zrs_price, zrs_price_ma, assets, equity, zeph_reserve, zys_price, zyield_reserve  = getReserveInfo(True)
 
 
         if reserve_ratio is not None:
             total_percentage_of_zeph_in_reserve = f"{float(zeph_reserve) / zeph_circ * 100:,.2f}"   
+            total_percentage_of_zsd_in_yield_reserve = f"{float(zyield_reserve) / zsd_circ * 100:,.2f}"
             await channel_reserve_ratio.edit(name=f"Res Ratio: {reserve_ratio}")
             await channel_reserve_ratio_ma.edit(name=f"Res Ratio MA: {reserve_ratio_ma}")
 
@@ -92,6 +97,16 @@ async def update_stats():
 
             await channel_reserve.edit(name=f"Res: {zeph_reserve} Ƶ ({total_percentage_of_zeph_in_reserve}%)")
             await channel_floating.edit(name=f"Float: {floating} Ƶ ({100 - float(total_percentage_of_zeph_in_reserve):,.2f}%)")
+
+            await channel_zys_price.edit(name=f"ZYS: {zys_price}")
+
+            if zyield_reserve < 1e6:
+                zyield_reserve = f"{zyield_reserve/1e3:.2f}K"
+            elif zyield_reserve < 1e9:
+                zyield_reserve = f"{zyield_reserve/1e6:.2f}M"
+
+            await channel_yield_reserve.edit(name=f"Yield Res: {zyield_reserve} ƵSD ({total_percentage_of_zsd_in_yield_reserve}%)")
+
             
 
         print("Stats updated!")

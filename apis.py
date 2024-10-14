@@ -22,6 +22,8 @@ def getCirculatingSupply(ticker, format=False):
             url = 'https://explorer.zephyrprotocol.com/api/circulating/zsd'
         elif ticker == 'ZRS':
             url = 'https://explorer.zephyrprotocol.com/api/circulating/zrs'
+        elif ticker == "ZYS":
+            url = 'https://explorer.zephyrprotocol.com/api/circulating/zys'
 
         if format:
             return f"{round(requests.get(url, timeout=5).json(),2):,.2f}"
@@ -104,10 +106,13 @@ def getReserveInfo(format=False):
         zrs_price = zrs_zeph_price
         zrs_price_ma = zrs_zeph_price_ma
 
+        zys_price = float(info['result']['pr']['yield_price']) / 1e12
+
         assets = float(info['result']['assets']) / 1e12
         equity = float(info['result']['equity']) / 1e12
 
         zeph_reserve = float(info['result']['zeph_reserve']) / 1e12
+        yield_reserve = float(info['result']['zyield_reserve']) / 1e12
 
         if format:
             reserve_ratio = f"{round(reserve_ratio * 100,2)}%"
@@ -115,6 +120,8 @@ def getReserveInfo(format=False):
 
             zrs_price = f"Ƶ{zrs_zeph_price:,.4f} (${zrs_usd_price:,.2f})"
             zrs_price_ma = f"Ƶ{zrs_zeph_price_ma:,.4f} (${zrs_usd_price_ma:,.2f})"
+
+            zys_price = f"{zys_price:,.4f}ƵSD"
 
             if assets < 1e6:
                 assets = f"${assets/1e3:.2f}K"
@@ -136,10 +143,11 @@ def getReserveInfo(format=False):
 
             # zeph_reserve = f"{zeph_reserve:,.2f}"
 
-        return reserve_ratio, reserve_ratio_ma, zrs_price, zrs_price_ma, assets, equity, zeph_reserve
-    except:
-        print("\tError getting reserve info, daemon may not be running")
-        return None, None, None, None, None, None, None
+        return reserve_ratio, reserve_ratio_ma, zrs_price, zrs_price_ma, assets, equity, zeph_reserve, zys_price, yield_reserve
+    except Exception as e:
+        print("\tError getting reserve info, daemon may not be running?")
+        print("\t", e)
+        return None, None, None, None, None, None, None, None, None
     
 
 if __name__ == '__main__':
@@ -161,13 +169,15 @@ if __name__ == '__main__':
     print(f"Miner Reward: {miner_reward}")
     print(f"Reserve Reward: {reserve_reward}")
 
-    reserve_ratio, reserve_ratio_ma, zrs_price, zrs_price_ma, assets, equity, zeph_reserve = getReserveInfo(True)
+    reserve_ratio, reserve_ratio_ma, zrs_price, zrs_price_ma, assets, equity, zeph_reserve, zys_price, zyield_reserve = getReserveInfo(True)
     print(f"Reserve Ratio: {reserve_ratio}")
     print(f"Reserve Ratio MA: {reserve_ratio_ma}")
     print(f"ZRS Price: {zrs_price}")
     print(f"ZRS Price MA: {zrs_price_ma}")
+    print(f"ZYS Price: {zys_price}")
     print(f"Assets: {assets}")
     print(f"Equity: {equity}")
+    print("--------------------")
     print(f"ZEPH Reserve: {zeph_reserve}")
 
     try:
@@ -188,9 +198,36 @@ if __name__ == '__main__':
 
         print(f"Res: {zeph_reserve} Ƶ ({total_percentage_of_zeph_in_reserve}%)")
         print(f"Float: {floating} Ƶ ({100 - float(total_percentage_of_zeph_in_reserve):,.2f}%)")
-    except:
-        print("\tError calculating Res and floating supply")
+    except Exception as e:
+        print("\tError calculating ZEPH Reserve and floating supply:", e)
 
+    print("--------------------")
+    print(f"Yield Reserve: {zyield_reserve}")
+
+    try:
+        zsd_circ = getCirculatingSupply('ZSD')
+        total_percentage_of_zsd_in_yield_reserve = f"{float(zyield_reserve) / zsd_circ * 100:,.2f}"
+        print(f"Total % of ZSD in Yield Reserve: {total_percentage_of_zsd_in_yield_reserve}%")
+        floating = float(zsd_circ) - float(zyield_reserve)
+
+        if zyield_reserve < 1e6:
+            zyield_reserve = f"{zyield_reserve/1e3:.2f}K"
+        elif zyield_reserve < 1e9:
+            zyield_reserve = f"{zyield_reserve/1e6:.2f}M"
+
+        if floating < 1e6:
+            floating = f"{floating/1e3:.2f}K"
+        elif floating < 1e9:
+            floating = f"{floating/1e6:.2f}M"
+
+        print(f"Res: {zyield_reserve} ZSD ({total_percentage_of_zsd_in_yield_reserve}%)")
+        print(f"Float: {floating} ZSD ({100 - float(total_percentage_of_zsd_in_yield_reserve):,.2f}%)")
+    except Exception as e:
+        print("\tError calculating ZSD Yield Reserve and floating supply:", e)
+
+
+
+    print("--------------------")
     
 
 
