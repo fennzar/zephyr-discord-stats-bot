@@ -61,6 +61,7 @@ def getHashrate():
 
 def getLastRewards():
     try:
+        price_unformatted = getCurrentPrice(format=False)
         url = 'https://explorer.zephyrprotocol.com/api/networkinfo'
         response = requests.get(url, timeout=5)
         data = response.json()
@@ -77,14 +78,15 @@ def getLastRewards():
                 reward = float(tx['xmr_outputs']) / 1e12
                 break
 
-        total_reward = reward / .8
-        miner_reward = f"Ƶ{round(total_reward * .75,2)}" 
-        reserve_reward = f"Ƶ{round(total_reward * .2,2)}"
+        total_reward = reward / .65
+        miner_reward = f"Ƶ{round(total_reward * .65,2)}" 
+        reserve_reward = f"Ƶ{round(total_reward * .30,2)}"
+        yield_reward = f"{round(total_reward * .05 * price_unformatted,2)} ƵSD"
 
-        return miner_reward, reserve_reward
+        return miner_reward, reserve_reward, yield_reward
     except Exception as e:
             print("\tError in getLastRewards:", e)
-            return "...", "..."
+            return "...", "...", "..."
 
 def getReserveInfo(format=False):
     try:
@@ -165,9 +167,10 @@ if __name__ == '__main__':
     hashrate = getHashrate()
     print(f"Hashrate: {hashrate}")
 
-    miner_reward, reserve_reward = getLastRewards()
+    miner_reward, reserve_reward, yield_reward = getLastRewards()
     print(f"Miner Reward: {miner_reward}")
     print(f"Reserve Reward: {reserve_reward}")
+    print(f"Yield Reward: {yield_reward}")
 
     reserve_ratio, reserve_ratio_ma, zrs_price, zrs_price_ma, assets, equity, zeph_reserve, zys_price, zyield_reserve = getReserveInfo(True)
     print(f"Reserve Ratio: {reserve_ratio}")
