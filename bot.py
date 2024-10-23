@@ -61,16 +61,39 @@ async def update_stats():
         print("Updating stats...")
         zeph_circ = getCirculatingSupply('ZEPH')
         zsd_circ = getCirculatingSupply('ZSD')
-        await channel_price.edit(name=f"Price: {getCurrentPrice(format=True)}")
-        await channel_zeph_circulating.edit(name=f"ZEPH Circ: {getCirculatingSupply('ZEPH', format=True)}")
-        await channel_zsd_circulating.edit(name=f"ZSD Circ: {getCirculatingSupply('ZSD', format=True)}")
-        await channel_market_cap.edit(name=f"MCap: {getMarketCap()}")
-        await channel_hashrate.edit(name=f"Hashrate: {getHashrate()}")
-        
+        # Fetch all the values
+        current_price = getCurrentPrice(format=True)
+        zeph_circ = getCirculatingSupply('ZEPH', format=True)
+        zsd_circ = getCirculatingSupply('ZSD', format=True)
+        market_cap = getMarketCap()
+        hashrate = getHashrate()
         miner_reward, reserve_reward, yield_reward = getLastRewards()
-        await channel_miner_reward.edit(name=f"Miner Reward: {miner_reward}")
-        await channel_reserve_reward.edit(name=f"Res Reward: {reserve_reward}")
-        await channel_yield_reward.edit(name=f"Yield Reward: {yield_reward}")
+
+        # Update the channels only if the values are not "..."
+        if current_price != "...":
+            await channel_price.edit(name=f"Price: {current_price}")
+
+        if zeph_circ != "...":
+            await channel_zeph_circulating.edit(name=f"ZEPH Circ: {zeph_circ}")
+
+        if zsd_circ != "...":
+            await channel_zsd_circulating.edit(name=f"ZSD Circ: {zsd_circ}")
+
+        if market_cap != "...":
+            await channel_market_cap.edit(name=f"MCap: {market_cap}")
+
+        if hashrate != "...":
+            await channel_hashrate.edit(name=f"Hashrate: {hashrate}")
+
+        if miner_reward != "...":
+            await channel_miner_reward.edit(name=f"Miner Reward: {miner_reward}")
+
+        if reserve_reward != "...":
+            await channel_reserve_reward.edit(name=f"Res Reward: {reserve_reward}")
+
+        if yield_reward != "...":
+            await channel_yield_reward.edit(name=f"Yield Reward: {yield_reward}")
+
 
         reserve_ratio, reserve_ratio_ma, zrs_price, zrs_price_ma, assets, equity, zeph_reserve, zys_price, zyield_reserve = getReserveInfo(True)
 
