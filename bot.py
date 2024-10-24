@@ -8,14 +8,13 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+TEST = os.getenv('TEST', 'False').lower() == 'true'
 
 # Initialize the bot with intents
 intents = discord.Intents.default()
 intents.messages = True
 intents.guilds = True  
-
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
@@ -59,56 +58,105 @@ async def update_stats():
         channel_yield_reward = bot.get_channel(CHANNEL_IDS["yield-reward"]) 
 
         print("Updating stats...")
+        if TEST:
+            print("!!!TEST MODE!!!")
         zeph_circ = getCirculatingSupply('ZEPH')
         zsd_circ = getCirculatingSupply('ZSD')
+
         # Fetch all the values
         current_price = getCurrentPrice(format=True)
-        zeph_circ = getCirculatingSupply('ZEPH', format=True)
-        zsd_circ = getCirculatingSupply('ZSD', format=True)
+
+        zeph_circ_formatted = getCirculatingSupply('ZEPH', format=True)
+        zsd_circ_formatted = getCirculatingSupply('ZSD', format=True)
         market_cap = getMarketCap()
         hashrate = getHashrate()
         miner_reward, reserve_reward, yield_reward = getLastRewards()
-
+        
         # Update the channels only if the values are not "..."
+        label = ""
         if current_price != "...":
-            await channel_price.edit(name=f"Price: {current_price}")
+            label = f"Price: {current_price}"
+            print(label)
+            if not TEST:
+                await channel_price.edit(name=label)
 
-        if zeph_circ != "...":
-            await channel_zeph_circulating.edit(name=f"ZEPH Circ: {zeph_circ}")
+        if zeph_circ_formatted != "...":
+            label = f"ZEPH Circ: {zeph_circ_formatted}"
+            print(label)
+            if not TEST:
+                await channel_zeph_circulating.edit(name=label)
 
         if zsd_circ != "...":
-            await channel_zsd_circulating.edit(name=f"ZSD Circ: {zsd_circ}")
+            label = f"ZSD Circ: {zsd_circ}"
+            print(label)
+            if not TEST:
+                await channel_zsd_circulating.edit(name=label)
 
         if market_cap != "...":
-            await channel_market_cap.edit(name=f"MCap: {market_cap}")
+            label = f"MCap: {market_cap}"
+            print(label)
+            if not TEST:
+                await channel_market_cap.edit(name=label)
 
         if hashrate != "...":
-            await channel_hashrate.edit(name=f"Hashrate: {hashrate}")
+            label = f"Hashrate: {hashrate}"
+            print(label)
+            if not TEST:
+                await channel_hashrate.edit(name=label)
 
         if miner_reward != "...":
-            await channel_miner_reward.edit(name=f"Miner Reward: {miner_reward}")
+            label = f"Miner Reward: {miner_reward}"
+            print(label)
+            if not TEST:
+                await channel_miner_reward.edit(name=label)
 
         if reserve_reward != "...":
-            await channel_reserve_reward.edit(name=f"Res Reward: {reserve_reward}")
+            label = f"Res Reward: {reserve_reward}"
+            print(label)
+            if not TEST:
+                await channel_reserve_reward.edit(name=label)
 
         if yield_reward != "...":
-            await channel_yield_reward.edit(name=f"Yield Reward: {yield_reward}")
-
+            label = f"Yield Reward: {yield_reward}"
+            print(label)
+            if not TEST:
+                await channel_yield_reward.edit(name=label)
 
         reserve_ratio, reserve_ratio_ma, zrs_price, zrs_price_ma, assets, equity, zeph_reserve, zys_price, zyield_reserve = getReserveInfo(True)
-
 
         if reserve_ratio is not None:
             total_percentage_of_zeph_in_reserve = f"{float(zeph_reserve) / zeph_circ * 100:,.2f}"   
             total_percentage_of_zsd_in_yield_reserve = f"{float(zyield_reserve) / zsd_circ * 100:,.2f}"
-            await channel_reserve_ratio.edit(name=f"Res Ratio: {reserve_ratio}")
-            await channel_reserve_ratio_ma.edit(name=f"Res Ratio MA: {reserve_ratio_ma}")
+            
+            label = f"Res Ratio: {reserve_ratio}"
+            print(label)
+            if not TEST:
+                await channel_reserve_ratio.edit(name=label)
 
-            await channel_zrs_price.edit(name=f"ZRS: {zrs_price}")
-            await channel_zrs_price_ma.edit(name=f"ZRS[MA]: {zrs_price_ma}")
+            label = f"Res Ratio MA: {reserve_ratio_ma}"
+            print(label)
+            if not TEST:
+                await channel_reserve_ratio_ma.edit(name=label)
 
-            await channel_assets.edit(name=f"Assets: {assets}")
-            await channel_equity.edit(name=f"Equity: {equity}")
+            label = f"ZRS: {zrs_price}"
+            print(label)
+            if not TEST:
+                await channel_zrs_price.edit(name=label)
+
+            label = f"ZRS[MA]: {zrs_price_ma}"
+            print(label)
+            if not TEST:
+                await channel_zrs_price_ma.edit(name=label)
+
+            label = f"Assets: {assets}"
+            print(label)
+            if not TEST:
+                await channel_assets.edit(name=label)
+
+            label = f"Equity: {equity}"
+            print(label)
+            if not TEST:
+                await channel_equity.edit(name=label)
 
             floating = float(zeph_circ) - float(zeph_reserve)
             if zeph_reserve < 1e6:
@@ -121,23 +169,34 @@ async def update_stats():
             elif floating < 1e9:
                 floating = f"{floating/1e6:.2f}M"
 
-            await channel_reserve.edit(name=f"Res: {zeph_reserve} Ƶ ({total_percentage_of_zeph_in_reserve}%)")
-            await channel_floating.edit(name=f"Float: {floating} Ƶ ({100 - float(total_percentage_of_zeph_in_reserve):,.2f}%)")
+            label = f"Res: {zeph_reserve} Ƶ ({total_percentage_of_zeph_in_reserve}%)"
+            print(label)
+            if not TEST:
+                await channel_reserve.edit(name=label)
 
-            await channel_zys_price.edit(name=f"ZYS: {zys_price}")
+            label = f"Float: {floating} Ƶ ({100 - float(total_percentage_of_zeph_in_reserve):,.2f}%)"
+            print(label)
+            if not TEST:
+                await channel_floating.edit(name=label)
+
+            label = f"ZYS: {zys_price}"
+            print(label)
+            if not TEST:
+                await channel_zys_price.edit(name=label)
 
             if zyield_reserve < 1e6:
                 zyield_reserve = f"{zyield_reserve/1e3:.2f}K"
             elif zyield_reserve < 1e9:
                 zyield_reserve = f"{zyield_reserve/1e6:.2f}M"
 
-            await channel_yield_reserve.edit(name=f"Yield Res: {zyield_reserve} ƵSD ({total_percentage_of_zsd_in_yield_reserve}%)")
-            
+            label = f"Yield Res: {zyield_reserve} ƵSD ({total_percentage_of_zsd_in_yield_reserve}%)"
+            print(label)
+            if not TEST:
+                await channel_yield_reserve.edit(name=label)
 
         print("Stats updated!")
     except Exception as e:
         print(f"An error occurred during update_stats: {e}")
-
 
 # Event listener for when the bot has connected to Discord
 @bot.event
