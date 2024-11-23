@@ -86,8 +86,8 @@ async def update_stats():
             if not TEST:
                 await channel_zeph_circulating.edit(name=label)
 
-        if zsd_circ != "...":
-            label = f"ZSD Circ: {zsd_circ}"
+        if zsd_circ_formatted != "...":
+            label = f"ZSD Circ: {zsd_circ_formatted}"
             print(label)
             if not TEST:
                 await channel_zsd_circulating.edit(name=label)

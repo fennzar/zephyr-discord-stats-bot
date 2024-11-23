@@ -26,7 +26,7 @@ def getCirculatingSupply(ticker, format=False):
             url = 'https://explorer.zephyrprotocol.com/api/circulating/zys'
 
         if format:
-            return f"{round(requests.get(url, timeout=5).json(),2):,.2f}"
+            return f"{round(requests.get(url, timeout=10).json(),2):,.2f}"
         
         return round(requests.get(url, timeout=5).json(),2)
     except Exception as e:
@@ -46,7 +46,7 @@ def getMarketCap():
 def getHashrate():
     try:
         url = 'https://explorer.zephyrprotocol.com/api/networkinfo'
-        response = requests.get(url, timeout=5)
+        response = requests.get(url, timeout=10)
         data = response.json()
         hash_rate = data['data']['hash_rate']
 
@@ -63,12 +63,12 @@ def getLastRewards():
     try:
         price_unformatted = getCurrentPrice(format=False)
         url = 'https://explorer.zephyrprotocol.com/api/networkinfo'
-        response = requests.get(url, timeout=5)
+        response = requests.get(url, timeout=10)
         data = response.json()
         height = data['data']['height']
 
         url = f'https://explorer.zephyrprotocol.com/api/block/{height-1}'
-        response = requests.get(url, timeout=5)
+        response = requests.get(url, timeout=10)
         data = response.json()
 
         txs = data['data']['txs']
